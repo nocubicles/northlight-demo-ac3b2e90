@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact — integrated.ee</title>
+
+  <!-- Preload fonts -->
+  <link rel="preload" href="../assets/fonts/AinoWeb-Headline.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../assets/fonts/AinoWeb-Regular.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <!-- Skip link -->
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <a class="logo" href="../index.html">integrated.ee</a>
+      <nav class="nav">
+        <a class="nav-link" href="about.html">About</a>
+        <a class="nav-link" href="services.html">Services</a>
+        <a class="nav-link" href="approach.html">Approach</a>
+        <a class="nav-link" href="team.html">Team</a>
+        <a class="nav-link" href="cases.html">Cases</a>
+        <a class="nav-contact" href="contact.html" aria-current="page">Contact</a>
+      </nav>
+      <button class="hamburger" aria-label="Toggle menu">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
+    </div>
+    <div class="nav-overlay">
+      <a class="nav-link" href="about.html">About</a>
+      <a class="nav-link" href="services.html">Services</a>
+      <a class="nav-link" href="approach.html">Approach</a>
+      <a class="nav-link" href="team.html">Team</a>
+      <a class="nav-link" href="cases.html">Cases</a>
+      <a class="nav-contact" href="contact.html" aria-current="page">Contact</a>
+    </div>
+  </header>
+
+  <div class="header-spacer"></div>
+
+  <!-- Main content -->
+  <main id="main">
+
+    <section class="section">
+      <div class="container">
+        <span class="section-label">Get in touch</span>
+        <h2 class="section-heading">Contact</h2>
+        <p class="section-intro">We'd love to hear about your project. Whether you're facing a complex integration challenge or rethinking your technology strategy — let's start a conversation.</p>
+
+        <div class="contact-layout">
+          <!-- Left column: Form -->
+          <div class="form-container">
+            <!-- Note: This is a static form. Backend integration needed for production. -->
+            <form action="#" method="POST">
+              <div class="form-group">
+                <label class="form-label" for="name">Name</label>
+                <input class="form-input" type="text" id="name" name="name" required placeholder="Your full name">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="email">Email</label>
+                <input class="form-input" type="email" id="email" name="email" required placeholder="your@email.com">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="company">Company</label>
+                <input class="form-input" type="text" id="company" name="company" placeholder="Your organization">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="message">Message</label>
+                <textarea class="form-textarea" id="message" name="message" required placeholder="Tell us about your project..."></textarea>
+              </div>
+              <button class="btn btn-primary" type="submit">Send message</button>
+            </form>
+          </div>
+
+          <!-- Right column: Sidebar -->
+          <div class="contact-sidebar">
+            <h3>Direct contact</h3>
+            <p><a href="mailto:villem@integrated.ee">villem@integrated.ee</a></p>
+
+            <h3>Location</h3>
+            <p>Tallinn, Estonia</p>
+            <p>Serving clients across Europe and North America.</p>
+
+            <h3>Response time</h3>
+            <p>We typically respond within one business day.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer divider -->
+  <div class="footer-divider">
+    <img src="../assets/svg/boulder-divider.svg" alt="" role="presentation">
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="grid">
+        <div class="footer-brand">
+          <span class="footer-logo">integrated.ee</span>
+          <p class="footer-tagline">Premium technology consulting. Strategy, architecture, and engineering — with clarity and craft.</p>
+        </div>
+        <div>
+          <h4 class="footer-heading">Navigate</h4>
+          <nav class="footer-links">
+            <a href="about.html" class="footer-link">About</a>
+            <a href="services.html" class="footer-link">Services</a>
+            <a href="approach.html" class="footer-link">Approach</a>
+            <a href="team.html" class="footer-link">Team</a>
+            <a href="cases.html" class="footer-link">Case Studies</a>
+          </nav>
+        </div>
+        <div>
+          <h4 class="footer-heading">Contact</h4>
+          <div class="footer-contact-item"><a href="mailto:villem@integrated.ee">villem@integrated.ee</a></div>
+          <div class="footer-contact-item">Tallinn, Estonia</div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 integrated.ee. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mobile menu toggle -->
+  <script>
+    (function () {
+      var hamburger = document.querySelector('.hamburger');
+      var overlay = document.querySelector('.nav-overlay');
+      if (!hamburger || !overlay) return;
+      hamburger.addEventListener('click', function () {
+        hamburger.classList.toggle('hamburger--active');
+        overlay.classList.toggle('nav-overlay--active');
+        document.body.style.overflow = overlay.classList.contains('nav-overlay--active') ? 'hidden' : '';
+      });
+    })();
+  </script>
+
+  <!-- Header scroll shadow -->
+  <script>
+    (function () {
+      var header = document.querySelector('.header');
+      if (!header) return;
+      window.addEventListener('scroll', function () {
+        if (window.scrollY > 10) {
+          header.classList.add('header-scrolled');
+        } else {
+          header.classList.remove('header-scrolled');
+        }
+      });
+    })();
+  </script>
+
+</body>
+</html>

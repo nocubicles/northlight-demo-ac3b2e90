@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Three stacked layers -->
+  <!-- Bottom layer -->
+  <path d="M6,32 L24,40 L42,32 L24,24 Z"/>
+  <!-- Middle layer -->
+  <path d="M6,24 L24,32 L42,24 L24,16 Z"/>
+  <!-- Top layer -->
+  <path d="M6,16 L24,24 L42,16 L24,8 Z"/>
+</svg>
