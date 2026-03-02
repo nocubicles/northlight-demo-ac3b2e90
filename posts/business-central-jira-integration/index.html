@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <title>Business Central, Azure Storage Queues And Jira — integrated.ee</title>
+  <meta name="description" content="I had a need to improve how I work with customers and how I record the tasks and time and bill the customers. So I decided to start using Jira + Business...">
+  <link rel="canonical" href="https://integrated.ee/posts/business-central-jira-integration/">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Business Central, Azure Storage Queues And Jira — integrated.ee">
+  <meta property="og:description" content="I had a need to improve how I work with customers and how I record the tasks and time and bill the customers. So I decided to start using Jira + Business...">
+  <meta property="og:url" content="https://integrated.ee/posts/business-central-jira-integration/">
+  <meta property="og:image" content="https://integrated.ee/assets/logo.png">
+  <meta property="og:site_name" content="integrated.ee">
+  <meta property="article:published_time" content="2024-05-14">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Business Central, Azure Storage Queues And Jira — integrated.ee">
+  <meta name="twitter:description" content="I had a need to improve how I work with customers and how I record the tasks and time and bill the customers. So I decided to start using Jira + Business...">
+  <meta name="twitter:image" content="https://integrated.ee/assets/logo.png">
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+ <link rel="icon" type="image/png" href="../../assets/favicon-32.png">
+ <link rel="icon" type="image/png" href="../../assets/favicon-16.png">
+ <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png">
+
+ <link rel="stylesheet" href="../../css/style.css">
+
+ <script type="application/ld+json">
+ {
+"@context":"https://schema.org",
+"@type":"BlogPosting",
+"headline":"Business Central, Azure Storage Queues And Jira",
+"datePublished":"2024-05-14",
+"description":"Business Central, Azure Storage Queues And Jira",
+"url":"https://integrated.ee/posts/business-central-jira-integration/",
+"author": {
+"@type":"Organization",
+"name":"integrated.ee",
+"url":"https://integrated.ee"
+ },
+"publisher": {
+"@type":"Organization",
+"name":"integrated.ee",
+"url":"https://integrated.ee",
+"logo": {
+"@type":"ImageObject",
+"url":"https://integrated.ee/assets/logo.png"
+ }
+ }
+}
+ </script>
+</head>
+<body>
+ <a href="#main" class="skip-link">Skip to content</a>
+ <header class="header">
+ <div class="container">
+ <a href="../../index.html" class="logo"><img src="../../assets/logo.png" alt="integrated.ee" class="logo-icon">integrated.ee</a>
+ <nav class="nav">
+ <a href="../../pages/services.html" class="nav-link">Services</a>
+ <a href="../../pages/support.html" class="nav-link">Support</a>
+ <a href="../../pages/approach.html" class="nav-link">Approach</a>
+ <a href="../../blogi/index.html" class="nav-link nav-link--active">Blog</a>
+ <a href="../../pages/about.html" class="nav-link">About</a>
+ <a href="../../pages/contact.html" class="nav-contact">Contact</a>
+ </nav>
+ <button class="hamburger" aria-label="Toggle menu"><span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span></button>
+ </div>
+ </header>
+ <div class="nav-overlay">
+ <a href="../../pages/services.html" class="nav-link">Services</a>
+ <a href="../../pages/support.html" class="nav-link">Support</a>
+ <a href="../../pages/approach.html" class="nav-link">Approach</a>
+ <a href="../../blogi/index.html" class="nav-link">Blog</a>
+ <a href="../../pages/about.html" class="nav-link">About</a>
+ <a href="../../pages/contact.html" class="nav-contact">Contact</a>
+ </div>
+ <div class="header-spacer"></div>
+ <main id="main">
+ <section class="section">
+ <div class="container">
+ <div class="article">
+ <a href="../../blogi/index.html" class="article-back">&#8592; Back to blog</a>
+ <div class="article-header">
+ <span class="article-date">May 14, 2024</span>
+ <h1>Business Central, Azure Storage Queues And Jira</h1>
+ </div>
+ <div class="article-content">
+<hr class="has-alpha-channel-opacity"/>
+
+<ul>
+<li>Youtube video of demonstrating the project <a href="https://youtu.be/Y0uUsBXPBMU">https://youtu.be/Y0uUsBXPBMU</a></li>
+
+<li>Github link to the project <a href="https://github.com/nocubicles/jiraandbcintegration">https://github.com/nocubicles/jiraandbcintegration</a></li>
+</ul>
+
+<p>I had a need to improve how I work with customers and how I record the tasks and time and bill the customers. So I decided to start using Jira + Business Central.</p>
+
+<p>But the problem is that there is no integration available between these two and so I had to built this myself.<br>I need to sync Projects and Tasks and Time entries from Jira to Business Central and when the time comes post the time entries against the Job Task to be able to bill the customer.</p>
+
+<p>So how I architected and built the integration between these two software?</p>
+
+<p>I decided to use webhooks in Jira and push the webhook data into a storage queue and then consume the queue in Business Central.</p>
+
+<p>Why use the storage queue and not to post the webhook directly into BC? Couple of reasons:</p>
+
+<ul>
+<li>I would need some middleware anyway since I can't authenticate from Jira to BC directly</li>
+
+<li>BC can be down, extension can be deployed etc so posting directly is not very bullet proof</li>
+
+<li>using queues there's no hard coupling between these two, I can swap out Jira if I want to</li>
+
+<li>BC has API limits and might run into them</li>
+
+<li>I had old project implementing the Storage Queues available and I really like queues <a href="https://github.com/nocubicles/AzureStorageQueues">Azure Storage Queues in Business Central</a></li>
+</ul>
+
+<p>This is what the high level architecture looks like:</p>
+
+<figure><img loading="lazy" decoding="async" width="1024" height="256" src="../../assets/images/wp/2024/05/jira-bc-architecture-1024x256.png" alt="" /></figure>
+
+<p>Getting data from the webhook:</p>
+
+<p>Doing full sync for all Jiras projects, issues and time entries.</p>
+
+<figure><img loading="lazy" decoding="async" width="1024" height="227" src="../../assets/images/wp/2024/05/full-sync-1024x227.png" alt="" /></figure>
+
+<p>Going into more detail I have a Azure Function written in C# which handles receiving the webhook from Jira and pushing it to the queue:</p>
+
+<pre class="has-background"><code>public class BCAndJiraProjectAndTask
+{
+
+ [Function("SyncBCAndJiraProjectAndTask")]
+ public static async Task<JobAndTaskResponse> Run([HttpTrigger(AuthorizationLevel.Anonymous,"get","post")] HttpRequestData req,
+ FunctionContext executionContext)
+ {
+ var logger = executionContext.GetLogger("HttpExample");
+ logger.LogInformation("C# HTTP trigger function processed a request.");
+
+ var content = await new StreamReader(req.Body).ReadToEndAsync();
+
+ JiraTask jiraTask = JiraTask.FromJson(content);
+ StringBuilder message = new StringBuilder();
+ message.Append(jiraTask.Issue.Fields.Project.Key);
+ message.Append(';');
+ message.Append(jiraTask.Issue.Fields.Project.Name);
+ message.Append(";");
+ message.Append(jiraTask.Issue.Key);
+ message.Append(";");
+ message.Append(jiraTask.Issue.Fields.Summary);
+ message.Append(";");
+ message.Append(jiraTask.Issue.Id);
+
+ var response = req.CreateResponse(HttpStatusCode.OK);
+ response.Headers.Add("Content-Type","text/plain; charset=utf-8");
+
+ response.WriteString("Added to the queue");
+
+ return new JobAndTaskResponse()
+ {
+ // Write a single message.
+ Messages = new string[] { message.ToString() },
+ HttpResponse = response
+ };
+ }
+}
+
+public class JobAndTaskResponse
+{
+ [QueueOutput("syncprojectandtask", Connection ="AzureWebJobsStorage")]
+ public string[] Messages { get; set; }
+ public HttpResponseData HttpResponse { get; set; }
+}</code></pre>
+
+<p>In Business Central I have a codeunit that I can schedule to process the queue. Thats using the project referenced before to communicate with the Storage Queue.</p>
+
+<pre class="has-background"><code> local procedure Process(Queue: Text): Boolean
+ var
+ AzureStorageQueueSdk: Codeunit AzureStorageQueuesSdk;
+ MessageBody: Text;
+ MessageId: Text;
+ MessageText: Text;
+ MessageTextList: list of [text];
+ MessagePopreceipt: Text;
+ Base64Convert: Codeunit"Base64 Convert";
+ begin
+ MessageBody := AzureStorageQueueSdk.GetNextMessageFromQueue(Queue);
+ if MessageBody = '' then
+ exit(false);
+ MessageId := AzureStorageQueueSdk.GetMessageIdFromXmlText(MessageBody);
+ MessageText := AzureStorageQueueSdk.GetMessageTextFromXmlText(MessageBody);
+ MessageText := Base64Convert.FromBase64(MessageText);
+ MessagePopreceipt := AzureStorageQueueSdk.GetMessagePopReceiptFromXmlText(MessageBody);
+
+ if (MessageId <> '') AND (MessageText <> '') then begin
+ MessageTextList := MessageText.Split(';');
+
+ if Queue = 'syncprojectandtask' then
+ if SyncJob(MessageTextList.Get(1), MessageTextList.Get(2)) and SyncJobTask(MessageTextList.Get(1), MessageTextList.Get(3), MessageTextList.Get(4), MessageTextList.Get(5)) then begin
+ //important here to check if delete is succesful and then commit. Otherwise we end in loop where messages are reappearing
+ if AzureStorageQueueSdk.DeleteMessageFromQueue(Queue, MessageId, MessagePopreceipt) then
+ Commit();
+ exit(true);
+ end;
+
+ if Queue = 'syncprojecttimeentries' then
+ if SyncJobTimeEntry(MessageTextList.Get(1), MessageTextList.Get(2), MessageTextList.Get(3), MessageTextList.Get(4), MessageTextList.Get(5), MessageTextList.Get(6)) then begin
+ //important here to check if delete is succesful and then commit. Otherwise we end in loop where messages are reappearing
+ if AzureStorageQueueSdk.DeleteMessageFromQueue(Queue, MessageId, MessagePopreceipt) then
+ Commit();
+ exit(true);
+ end;
+ end;
+ end;</code></pre>
+
+<figure><img loading="lazy" decoding="async" width="1024" height="244" src="../../assets/images/wp/2024/05/timeentries-1024x244.png" alt="" /></figure>
+
+<figure><img loading="lazy" decoding="async" width="1024" height="193" src="../../assets/images/wp/2024/05/time-entries-bc-1024x193.png" alt="" /></figure>
+ </div>
+ </div>
+ </div>
+ </section>
+ </main>
+ <footer class="footer">
+ <div class="container">
+ <div class="footer-grid">
+ <div><span class="footer-logo">integrated.ee</span><p class="footer-tagline">Senior Business Central team. AI-powered delivery. Estonian-based.</p></div>
+ <div><h4 class="footer-heading">Navigate</h4><nav class="footer-links"><a href="../../pages/services.html" class="footer-link">Services</a><a href="../../pages/support.html" class="footer-link">Support</a><a href="../../pages/approach.html" class="footer-link">Approach</a><a href="../../blogi/index.html" class="footer-link">Blog</a><a href="../../pages/about.html" class="footer-link">About</a><a href="../../pages/cases.html" class="footer-link">Cases</a></nav></div>
+ <div><h4 class="footer-heading">Contact</h4><div class="footer-contact-item"><a href="mailto:villem@integrated.ee">villem@integrated.ee</a></div><div class="footer-contact-item">Tallinn, Estonia</div></div>
+ </div>
+ <div class="footer-bottom"><p>&copy; 2026 integrated.ee OÜ. All rights reserved.</p></div>
+ </div>
+ </footer>
+ <script>
+ (function() {
+ var hamburger = document.querySelector('.hamburger');
+ var overlay = document.querySelector('.nav-overlay');
+ if (hamburger && overlay) {
+ hamburger.addEventListener('click', function() { hamburger.classList.toggle('hamburger--active'); overlay.classList.toggle('nav-overlay--active'); document.body.style.overflow = overlay.classList.contains('nav-overlay--active') ? 'hidden' : ''; });
+ overlay.querySelectorAll('a').forEach(function(link) { link.addEventListener('click', function() { hamburger.classList.remove('hamburger--active'); overlay.classList.remove('nav-overlay--active'); document.body.style.overflow = ''; }); });
+ }
+ var header = document.querySelector('.header');
+ if (header) { window.addEventListener('scroll', function() { header.classList.toggle('header-scrolled', window.scrollY > 10); }); }
+ })();
+ </script>
+</body>
+</html>

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <title>How to design a high performant inventory report in Business Central — integrated.ee</title>
+  <meta name="description" content="The standard&quot;Items by Location&quot; report in Business Central is convenient for quick checks but becomes a bottleneck as your item and ledger entry count...">
+  <link rel="canonical" href="https://integrated.ee/posts/business-central-design-high-performance-inventory-report/">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="How to design a high performant inventory report in Business Central — integrated.ee">
+  <meta property="og:description" content="The standard&quot;Items by Location&quot; report in Business Central is convenient for quick checks but becomes a bottleneck as your item and ledger entry count...">
+  <meta property="og:url" content="https://integrated.ee/posts/business-central-design-high-performance-inventory-report/">
+  <meta property="og:image" content="https://integrated.ee/assets/logo.png">
+  <meta property="og:site_name" content="integrated.ee">
+  <meta property="article:published_time" content="2024-05-14">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="How to design a high performant inventory report in Business Central — integrated.ee">
+  <meta name="twitter:description" content="The standard&quot;Items by Location&quot; report in Business Central is convenient for quick checks but becomes a bottleneck as your item and ledger entry count...">
+  <meta name="twitter:image" content="https://integrated.ee/assets/logo.png">
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+ <link rel="icon" type="image/png" href="../../assets/favicon-32.png">
+ <link rel="icon" type="image/png" href="../../assets/favicon-16.png">
+ <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png">
+
+ <link rel="stylesheet" href="../../css/style.css">
+
+ <script type="application/ld+json">
+ {
+"@context":"https://schema.org",
+"@type":"BlogPosting",
+"headline":"How to design a high performant inventory report in Business Central",
+"datePublished":"2024-05-14",
+"description":"How to design a high performant inventory report in Business Central",
+"url":"https://integrated.ee/posts/business-central-design-high-performance-inventory-report/",
+"author": {
+"@type":"Organization",
+"name":"integrated.ee",
+"url":"https://integrated.ee"
+ },
+"publisher": {
+"@type":"Organization",
+"name":"integrated.ee",
+"url":"https://integrated.ee",
+"logo": {
+"@type":"ImageObject",
+"url":"https://integrated.ee/assets/logo.png"
+ }
+ }
+}
+ </script>
+</head>
+<body>
+ <a href="#main" class="skip-link">Skip to content</a>
+ <header class="header">
+ <div class="container">
+ <a href="../../index.html" class="logo"><img src="../../assets/logo.png" alt="integrated.ee" class="logo-icon">integrated.ee</a>
+ <nav class="nav">
+ <a href="../../pages/services.html" class="nav-link">Services</a>
+ <a href="../../pages/support.html" class="nav-link">Support</a>
+ <a href="../../pages/approach.html" class="nav-link">Approach</a>
+ <a href="../../blogi/index.html" class="nav-link nav-link--active">Blog</a>
+ <a href="../../pages/about.html" class="nav-link">About</a>
+ <a href="../../pages/contact.html" class="nav-contact">Contact</a>
+ </nav>
+ <button class="hamburger" aria-label="Toggle menu"><span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span></button>
+ </div>
+ </header>
+ <div class="nav-overlay">
+ <a href="../../pages/services.html" class="nav-link">Services</a>
+ <a href="../../pages/support.html" class="nav-link">Support</a>
+ <a href="../../pages/approach.html" class="nav-link">Approach</a>
+ <a href="../../blogi/index.html" class="nav-link">Blog</a>
+ <a href="../../pages/about.html" class="nav-link">About</a>
+ <a href="../../pages/contact.html" class="nav-contact">Contact</a>
+ </div>
+ <div class="header-spacer"></div>
+ <main id="main">
+ <section class="section">
+ <div class="container">
+ <div class="article">
+ <a href="../../blogi/index.html" class="article-back">&#8592; Back to blog</a>
+ <div class="article-header">
+ <span class="article-date">May 14, 2024</span>
+ <h1>How to design a high performant inventory report in Business Central</h1>
+ </div>
+ <div class="article-content">
+ <h2>The problem with the standard report</h2>
+ <p>The standard"Items by Location" report in Business Central is convenient for quick checks but becomes a bottleneck as your item and ledger entry count grows. It iterates row-by-row through Item Ledger Entries without the aggregation and filtering optimisations you get from a dedicated query object, and its layout options are limited. For companies with thousands of items across multiple warehouses, this results in slow render times and a report that is difficult to extend.</p>
+
+ <p>Here is the standard report output that most users are familiar with:</p>
+ <img src="../../assets/images/wp/2022/09/standard_report-1024x552.png" alt="Standard Items by Location report in Business Central">
+
+ <h2>The solution: a query-backed report with Excel layout</h2>
+ <p>The approach is to use a Business Central Query object to summarise Item Ledger Entries at the database level, load the result into a temporary table in <code>OnPreReport</code>, and then use an Integer-based report to iterate through that temporary table. Coupling this with an Excel layout gives users a familiar, filterable spreadsheet they can pivot and sort without developer involvement.</p>
+
+ <h3>Query: Items By Location</h3>
+ <p>The query groups Item Ledger Entries by Item No. and Location Code and sums the Quantity field. This aggregation happens in SQL, meaning the report only ever loads one row per item-location combination into BC memory rather than every individual ledger entry.</p>
+
+<pre><code>query 50101"Items By Location"
+{
+ QueryType = Normal;
+ Caption = 'Items By Location';
+
+ elements
+ {
+ dataitem(ItemLedgerEntry;"Item Ledger Entry")
+ {
+ column(ItemNo;"Item No.") { }
+ column(LocationCode;"Location Code") { }
+ column(SumQuantity; Quantity)
+ {
+ Method = Sum;
+ }
+
+ filter(LocationCodeFilter;"Location Code") { }
+ }
+ }
+}</code></pre>
+
+ <h3>Temporary table: Inventory By Location Buffer</h3>
+ <p>The temp table mirrors the query output and holds one row per item-location combination while the report runs. Using a temp table decouples the data-loading step from the report rendering step and makes it easy to apply additional in-memory filtering or sorting before the report iterates the rows.</p>
+
+<pre><code>table 50100"Inventory By Location Buffer"
+{
+ TableType = Temporary;
+ Caption = 'Inventory By Location Buffer';
+
+ fields
+ {
+ field(1;"Item No."; Code[20]) { Caption = 'Item No.'; }
+ field(2;"Location Code"; Code[10]) { Caption = 'Location Code'; }
+ field(3; Quantity; Decimal) { Caption = 'Quantity'; }
+ }
+
+ keys
+ {
+ key(PK;"Item No.","Location Code") { Clustered = true; }
+ }
+}</code></pre>
+
+ <h3>Report: Inventory By Location</h3>
+ <p>The report datasource is an Integer table, which lets us control exactly how many rows are rendered by setting <code>Number</code> to the count of rows in the temp table. <code>OnPreReport</code> runs the query, respecting the location filter from the request page, and fills the temp table. Each <code>OnAfterGetRecord</code> on the Integer dataitem advances a pointer through the temp table rows.</p>
+
+<pre><code>report 50100"Inventory By Location"
+{
+ UsageCategory = ReportsAndAnalysis;
+ ApplicationArea = All;
+ Caption = 'Inventory By Location';
+ DefaultLayout = Excel;
+ ExcelLayout = 'InventoryByLocation.xlsx';
+
+ dataset
+ {
+ dataitem(Integer; Integer)
+ {
+ DataItemTableView = sorting(Number) where(Number = filter(1 .. 999999));
+
+ column(ItemNo; TempBuffer."Item No.") { }
+ column(LocationCode; TempBuffer."Location Code") { }
+ column(Quantity; TempBuffer.Quantity) { }
+
+ trigger OnPreDataItem()
+ begin
+ Number := TempBuffer.Count();
+ TempBuffer.FindFirst();
+ end;
+
+ trigger OnAfterGetRecord()
+ begin
+ if Number > 1 then
+ TempBuffer.Next();
+ end;
+ }
+ }
+
+ requestpage
+ {
+ layout
+ {
+ area(Content)
+ {
+ group(Filters)
+ {
+ field(LocationFilter; LocationFilter)
+ {
+ Caption = 'Location Filter';
+ ApplicationArea = All;
+ }
+ }
+ }
+ }
+ }
+
+ trigger OnPreReport()
+ var
+ ItemsByLocation: Query"Items By Location";
+ begin
+ if LocationFilter <> '' then
+ ItemsByLocation.SetFilter(LocationCodeFilter, LocationFilter);
+
+ ItemsByLocation.Open();
+ while ItemsByLocation.Read() do begin
+ TempBuffer.Init();
+ TempBuffer."Item No." := ItemsByLocation.ItemNo;
+ TempBuffer."Location Code" := ItemsByLocation.LocationCode;
+ TempBuffer.Quantity := ItemsByLocation.SumQuantity;
+ if TempBuffer.Quantity &lt;&gt; 0 then
+ TempBuffer.Insert();
+ end;
+ ItemsByLocation.Close();
+ end;
+
+ var
+ TempBuffer: Record"Inventory By Location Buffer" temporary;
+ LocationFilter: Text;
+}</code></pre>
+
+ <h2>Result</h2>
+ <p>The final report opens in Excel with one row per item-location combination, quantity pre-summed, and the full power of Excel filtering and pivot tables available to the user:</p>
+ <img src="../../assets/images/wp/2022/09/final_report.png" alt="Final high-performance Inventory By Location report output in Excel">
+
+ <h2>Conclusion</h2>
+ <p>Using a Query object to aggregate Item Ledger Entries at the database level, combined with a temp table buffer and an Integer-based report with an Excel layout, produces a report that is both significantly faster than the standard alternative and straightforward to extend. Adding new columns, filters, or groupings is a matter of updating the query and the temp table — no changes to the report dataitem loop are needed.</p>
+ </div>
+ </div>
+ </div>
+ </section>
+ </main>
+ <footer class="footer">
+ <div class="container">
+ <div class="footer-grid">
+ <div><span class="footer-logo">integrated.ee</span><p class="footer-tagline">Senior Business Central team. AI-powered delivery. Estonian-based.</p></div>
+ <div><h4 class="footer-heading">Navigate</h4><nav class="footer-links"><a href="../../pages/services.html" class="footer-link">Services</a><a href="../../pages/support.html" class="footer-link">Support</a><a href="../../pages/approach.html" class="footer-link">Approach</a><a href="../../blogi/index.html" class="footer-link">Blog</a><a href="../../pages/about.html" class="footer-link">About</a><a href="../../pages/cases.html" class="footer-link">Cases</a></nav></div>
+ <div><h4 class="footer-heading">Contact</h4><div class="footer-contact-item"><a href="mailto:villem@integrated.ee">villem@integrated.ee</a></div><div class="footer-contact-item">Tallinn, Estonia</div></div>
+ </div>
+ <div class="footer-bottom"><p>&copy; 2026 integrated.ee OÜ. All rights reserved.</p></div>
+ </div>
+ </footer>
+ <script>
+ (function() {
+ var hamburger = document.querySelector('.hamburger');
+ var overlay = document.querySelector('.nav-overlay');
+ if (hamburger && overlay) {
+ hamburger.addEventListener('click', function() { hamburger.classList.toggle('hamburger--active'); overlay.classList.toggle('nav-overlay--active'); document.body.style.overflow = overlay.classList.contains('nav-overlay--active') ? 'hidden' : ''; });
+ overlay.querySelectorAll('a').forEach(function(link) { link.addEventListener('click', function() { hamburger.classList.remove('hamburger--active'); overlay.classList.remove('nav-overlay--active'); document.body.style.overflow = ''; }); });
+ }
+ var header = document.querySelector('.header');
+ if (header) { window.addEventListener('scroll', function() { header.classList.toggle('header-scrolled', window.scrollY > 10); }); }
+ })();
+ </script>
+</body>
+</html>

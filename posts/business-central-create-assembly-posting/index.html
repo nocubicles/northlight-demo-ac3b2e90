@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How to post assembly orders with item tracking via OData API in Business Central — integrated.ee</title>
+  <meta name="description" content="Posting assembly orders with lot or serial number tracking through Business Central's OData API requires two custom API pages working in concert: one that...">
+  <link rel="canonical" href="https://integrated.ee/posts/business-central-create-assembly-posting/">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="How to post assembly orders with item tracking via OData API in Business Central — integrated.ee">
+  <meta property="og:description" content="Posting assembly orders with lot or serial number tracking through Business Central's OData API requires two custom API pages working in concert: one that...">
+  <meta property="og:url" content="https://integrated.ee/posts/business-central-create-assembly-posting/">
+  <meta property="og:image" content="https://integrated.ee/assets/logo.png">
+  <meta property="og:site_name" content="integrated.ee">
+  <meta property="article:published_time" content="2024-05-14">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="How to post assembly orders with item tracking via OData API in Business Central — integrated.ee">
+  <meta name="twitter:description" content="Posting assembly orders with lot or serial number tracking through Business Central's OData API requires two custom API pages working in concert: one that...">
+  <meta name="twitter:image" content="https://integrated.ee/assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../../assets/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/apple-touch-icon.png">
+
+  <link rel="stylesheet" href="../../css/style.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "How to post assembly orders with item tracking via OData API in Business Central",
+    "datePublished": "2024-05-14",
+    "description": "Posting assembly orders with lot or serial number tracking through Business Central's OData API requires two custom API pages working in concert: one that exposes the Assembly Header and its lines,...",
+    "url": "https://integrated.ee/posts/business-central-create-assembly-posting/",
+    "author": {
+        "@type": "Organization",
+        "name": "integrated.ee",
+        "url": "https://integrated.ee"
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "integrated.ee",
+        "url": "https://integrated.ee",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "https://integrated.ee/assets/logo.png"
+        }
+    }
+}
+  </script>
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to content</a>
+  <header class="header">
+    <div class="container">
+      <a href="../../index.html" class="logo"><img src="../../assets/logo.png" alt="integrated.ee" class="logo-icon">integrated.ee</a>
+      <nav class="nav">
+        <a href="../../pages/services.html" class="nav-link">Services</a>
+        <a href="../../pages/support.html" class="nav-link">Support</a>
+        <a href="../../pages/approach.html" class="nav-link">Approach</a>
+        <a href="../../blogi/index.html" class="nav-link nav-link--active">Blog</a>
+        <a href="../../pages/about.html" class="nav-link">About</a>
+        <a href="../../pages/contact.html" class="nav-contact">Contact</a>
+      </nav>
+      <button class="hamburger" aria-label="Toggle menu"><span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span></button>
+    </div>
+  </header>
+  <div class="nav-overlay">
+    <a href="../../pages/services.html" class="nav-link">Services</a>
+    <a href="../../pages/support.html" class="nav-link">Support</a>
+    <a href="../../pages/approach.html" class="nav-link">Approach</a>
+    <a href="../../blogi/index.html" class="nav-link">Blog</a>
+    <a href="../../pages/about.html" class="nav-link">About</a>
+    <a href="../../pages/contact.html" class="nav-contact">Contact</a>
+  </div>
+  <div class="header-spacer"></div>
+  <main id="main">
+    <section class="section">
+      <div class="container">
+        <div class="article">
+          <a href="../../blogi/index.html" class="article-back">&#8592; Back to blog</a>
+          <div class="article-header">
+            <span class="article-date">May 14, 2024</span>
+            <h1>How to post assembly orders with item tracking via OData API in Business Central</h1>
+          </div>
+          <div class="article-content">
+            <p>Posting assembly orders with lot or serial number tracking through Business Central's OData API requires two custom API pages working in concert: one that exposes the Assembly Header and its lines, and one that handles the item tracking entries via the Reservation Entry temporary table. The examples below are intentionally simplified to illustrate the pattern — in a production extension you would add validation, error handling, and more complete field exposure.</p>
+
+            <h2>API page: Assembly Orders</h2>
+            <p>This page exposes the Assembly Header as an API endpoint. It includes a <code>lines</code> subpart for Assembly Lines and a <code>PostAssemblyOrder</code> action that triggers the standard posting codeunit. A client can create an order, patch its lines, assign tracking, and then call the action to post — all via REST.</p>
+
+<pre><code>page 50130 "Assembly Orders API"
+{
+    PageType = API;
+    APIPublisher = 'myCompany';
+    APIGroup = 'assembly';
+    APIVersion = 'v1.0';
+    EntityName = 'assemblyOrder';
+    EntitySetName = 'assemblyOrders';
+    SourceTable = "Assembly Header";
+    DelayedInsert = true;
+
+    layout
+    {
+        area(Content)
+        {
+            repeater(Group)
+            {
+                field(id; Rec.SystemId) { }
+                field(no; Rec."No.") { }
+                field(itemNo; Rec."Item No.") { }
+                field(quantity; Rec.Quantity) { }
+                field(dueDate; Rec."Due Date") { }
+                field(locationCode; Rec."Location Code") { }
+
+                part(lines; "Assembly Lines API")
+                {
+                    Caption = 'lines';
+                    EntityName = 'assemblyLine';
+                    EntitySetName = 'assemblyLines';
+                    SubPageLink = "Document Type" = field("Document Type"),
+                                  "Document No." = field("No.");
+                }
+            }
+        }
+    }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(PostAssemblyOrder)
+            {
+                Caption = 'Post Assembly Order';
+                ApplicationArea = All;
+
+                trigger OnAction()
+                var
+                    AssemblyPost: Codeunit "Assembly-Post";
+                begin
+                    AssemblyPost.Run(Rec);
+                end;
+            }
+        }
+    }
+}</code></pre>
+
+            <h2>API page: Item Tracking</h2>
+            <p>Item tracking entries in Business Central live in the Reservation Entry table. Because the API client needs to insert tracking records that are immediately associated with a specific assembly order line, this page uses the table in temporary mode and implements <code>OnInsertRecord</code> to create the real reservation entries with the correct source fields filled in for lot tracking.</p>
+
+<pre><code>page 50131 "Item Tracking API"
+{
+    PageType = API;
+    APIPublisher = 'myCompany';
+    APIGroup = 'assembly';
+    APIVersion = 'v1.0';
+    EntityName = 'itemTracking';
+    EntitySetName = 'itemTrackings';
+    SourceTable = "Reservation Entry";
+    SourceTableTemporary = true;
+    DelayedInsert = true;
+
+    layout
+    {
+        area(Content)
+        {
+            repeater(Group)
+            {
+                field(id; Rec.SystemId) { }
+                field(itemNo; Rec."Item No.") { }
+                field(lotNo; Rec."Lot No.") { }
+                field(quantity; Rec.Quantity) { }
+                field(sourceType; Rec."Source Type") { }
+                field(sourceSubtype; Rec."Source Subtype") { }
+                field(sourceID; Rec."Source ID") { }
+                field(sourceRefNo; Rec."Source Ref. No.") { }
+            }
+        }
+    }
+
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    var
+        ReservationEntry: Record "Reservation Entry";
+        EntryNo: Integer;
+    begin
+        ReservationEntry.LockTable();
+        if ReservationEntry.FindLast() then
+            EntryNo := ReservationEntry."Entry No." + 1
+        else
+            EntryNo := 1;
+
+        ReservationEntry.Init();
+        ReservationEntry."Entry No." := EntryNo;
+        ReservationEntry."Item No." := Rec."Item No.";
+        ReservationEntry."Lot No." := Rec."Lot No.";
+        ReservationEntry.Quantity := Rec.Quantity;
+        ReservationEntry."Quantity (Base)" := Rec.Quantity;
+        ReservationEntry."Source Type" := Rec."Source Type";
+        ReservationEntry."Source Subtype" := Rec."Source Subtype";
+        ReservationEntry."Source ID" := Rec."Source ID";
+        ReservationEntry."Source Ref. No." := Rec."Source Ref. No.";
+        ReservationEntry."Reservation Status" := ReservationEntry."Reservation Status"::Surplus;
+        ReservationEntry."Tracking Specification" := false;
+        ReservationEntry.Positive := false;
+        ReservationEntry.Insert(true);
+
+        exit(false);
+    end;
+}</code></pre>
+
+            <p>These are simplistic examples intended to illustrate the approach. A real implementation would need to handle both positive and negative reservation entry pairs, serial number tracking, expiration dates, and proper validation of source document references before inserting entries.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div><span class="footer-logo">integrated.ee</span><p class="footer-tagline">Senior Business Central team. AI-powered delivery. Estonian-based.</p></div>
+        <div><h4 class="footer-heading">Navigate</h4><nav class="footer-links"><a href="../../pages/services.html" class="footer-link">Services</a><a href="../../pages/support.html" class="footer-link">Support</a><a href="../../pages/approach.html" class="footer-link">Approach</a><a href="../../blogi/index.html" class="footer-link">Blog</a><a href="../../pages/about.html" class="footer-link">About</a><a href="../../pages/cases.html" class="footer-link">Cases</a></nav></div>
+        <div><h4 class="footer-heading">Contact</h4><div class="footer-contact-item"><a href="mailto:villem@integrated.ee">villem@integrated.ee</a></div><div class="footer-contact-item">Tallinn, Estonia</div></div>
+      </div>
+      <div class="footer-bottom"><p>&copy; 2026 integrated.ee OÜ. All rights reserved.</p></div>
+    </div>
+  </footer>
+  <script>
+    (function() {
+      var hamburger = document.querySelector('.hamburger');
+      var overlay = document.querySelector('.nav-overlay');
+      if (hamburger && overlay) {
+        hamburger.addEventListener('click', function() { hamburger.classList.toggle('hamburger--active'); overlay.classList.toggle('nav-overlay--active'); document.body.style.overflow = overlay.classList.contains('nav-overlay--active') ? 'hidden' : ''; });
+        overlay.querySelectorAll('a').forEach(function(link) { link.addEventListener('click', function() { hamburger.classList.remove('hamburger--active'); overlay.classList.remove('nav-overlay--active'); document.body.style.overflow = ''; }); });
+      }
+      var header = document.querySelector('.header');
+      if (header) { window.addEventListener('scroll', function() { header.classList.toggle('header-scrolled', window.scrollY > 10); }); }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Page not found — integrated.ee</title>
+  <meta name="description" content="The page you are looking for does not exist.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to content</a>
+  <header class="header">
+    <div class="container">
+      <a href="/" class="logo"><img src="/assets/logo.png" alt="integrated.ee" class="logo-icon">integrated.ee</a>
+      <nav class="nav">
+        <a href="/pages/services.html" class="nav-link">Services</a>
+        <a href="/pages/support.html" class="nav-link">Support</a>
+        <a href="/pages/approach.html" class="nav-link">Approach</a>
+        <a href="/blogi/index.html" class="nav-link">Blog</a>
+        <a href="/pages/about.html" class="nav-link">About</a>
+        <a href="/pages/contact.html" class="nav-contact">Contact</a>
+      </nav>
+      <button class="hamburger" aria-label="Toggle menu">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
+    </div>
+  </header>
+  <div class="nav-overlay">
+    <a href="/pages/services.html" class="nav-link">Services</a>
+    <a href="/pages/support.html" class="nav-link">Support</a>
+    <a href="/pages/approach.html" class="nav-link">Approach</a>
+    <a href="/blogi/index.html" class="nav-link">Blog</a>
+    <a href="/pages/about.html" class="nav-link">About</a>
+    <a href="/pages/contact.html" class="nav-contact">Contact</a>
+  </div>
+  <div class="header-spacer"></div>
+
+  <main id="main">
+    <section class="hero">
+      <div class="container">
+        <h1>Page not found</h1>
+        <p class="hero-sub">The page you are looking for does not exist or has been moved.</p>
+        <div class="hero-actions">
+          <a href="/" class="btn btn-accent btn-lg">Go to homepage</a>
+          <a href="/pages/contact.html" class="btn btn-ghost-light btn-lg">Contact us</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <span class="footer-logo">integrated.ee</span>
+          <p class="footer-tagline">Senior Business Central team. AI-powered delivery. Estonian-based.</p>
+        </div>
+        <div>
+          <h4 class="footer-heading">Navigate</h4>
+          <nav class="footer-links">
+            <a href="/pages/services.html" class="footer-link">Services</a>
+            <a href="/pages/support.html" class="footer-link">Support Packages</a>
+            <a href="/pages/approach.html" class="footer-link">Approach</a>
+            <a href="/pages/about.html" class="footer-link">About</a>
+            <a href="/blogi/index.html" class="footer-link">Blog</a>
+            <a href="/pages/cases.html" class="footer-link">Cases</a>
+          </nav>
+        </div>
+        <div>
+          <h4 class="footer-heading">Contact</h4>
+          <div class="footer-contact-item"><a href="mailto:villem@integrated.ee">villem@integrated.ee</a></div>
+          <div class="footer-contact-item">Tallinn, Estonia</div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 integrated.ee OÜ. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function() {
+      var hamburger = document.querySelector('.hamburger');
+      var overlay = document.querySelector('.nav-overlay');
+      if (hamburger && overlay) {
+        hamburger.addEventListener('click', function() {
+          hamburger.classList.toggle('hamburger--active');
+          overlay.classList.toggle('nav-overlay--active');
+          document.body.style.overflow = overlay.classList.contains('nav-overlay--active') ? 'hidden' : '';
+        });
+        overlay.querySelectorAll('a').forEach(function(link) {
+          link.addEventListener('click', function() {
+            hamburger.classList.remove('hamburger--active');
+            overlay.classList.remove('nav-overlay--active');
+            document.body.style.overflow = '';
+          });
+        });
+      }
+      var header = document.querySelector('.header');
+      if (header) {
+        window.addEventListener('scroll', function() {
+          header.classList.toggle('header-scrolled', window.scrollY > 10);
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

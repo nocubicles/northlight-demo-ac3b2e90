@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <title>How to set focus on fields using Javascript in Business Central — integrated.ee</title>
+  <meta name="description" content="When users enter sales order lines with a barcode scanner or need to move rapidly through a fixed sequence of fields, the default tab order in Business...">
+  <link rel="canonical" href="https://integrated.ee/posts/business-central-field-focus/">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="How to set focus on fields using Javascript in Business Central — integrated.ee">
+  <meta property="og:description" content="When users enter sales order lines with a barcode scanner or need to move rapidly through a fixed sequence of fields, the default tab order in Business...">
+  <meta property="og:url" content="https://integrated.ee/posts/business-central-field-focus/">
+  <meta property="og:image" content="https://integrated.ee/assets/logo.png">
+  <meta property="og:site_name" content="integrated.ee">
+  <meta property="article:published_time" content="2024-05-14">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="How to set focus on fields using Javascript in Business Central — integrated.ee">
+  <meta name="twitter:description" content="When users enter sales order lines with a barcode scanner or need to move rapidly through a fixed sequence of fields, the default tab order in Business...">
+  <meta name="twitter:image" content="https://integrated.ee/assets/logo.png">
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+ <link rel="icon" type="image/png" href="../../assets/favicon-32.png">
+ <link rel="icon" type="image/png" href="../../assets/favicon-16.png">
+ <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png">
+
+ <link rel="stylesheet" href="../../css/style.css">
+
+ <script type="application/ld+json">
+ {
+"@context":"https://schema.org",
+"@type":"BlogPosting",
+"headline":"How to set focus on fields using Javascript in Business Central",
+"datePublished":"2024-05-14",
+"description":"When users enter sales order lines with a barcode scanner or need to move rapidly through a fixed sequence of fields, the default tab order in Business Central is often not efficient enough. By emb...",
+"url":"https://integrated.ee/posts/business-central-field-focus/",
+"author": {
+"@type":"Organization",
+"name":"integrated.ee",
+"url":"https://integrated.ee"
+ },
+"publisher": {
+"@type":"Organization",
+"name":"integrated.ee",
+"url":"https://integrated.ee",
+"logo": {
+"@type":"ImageObject",
+"url":"https://integrated.ee/assets/logo.png"
+ }
+ }
+}
+ </script>
+</head>
+<body>
+ <a href="#main" class="skip-link">Skip to content</a>
+ <header class="header">
+ <div class="container">
+ <a href="../../index.html" class="logo"><img src="../../assets/logo.png" alt="integrated.ee" class="logo-icon">integrated.ee</a>
+ <nav class="nav">
+ <a href="../../pages/services.html" class="nav-link">Services</a>
+ <a href="../../pages/support.html" class="nav-link">Support</a>
+ <a href="../../pages/approach.html" class="nav-link">Approach</a>
+ <a href="../../blogi/index.html" class="nav-link nav-link--active">Blog</a>
+ <a href="../../pages/about.html" class="nav-link">About</a>
+ <a href="../../pages/contact.html" class="nav-contact">Contact</a>
+ </nav>
+ <button class="hamburger" aria-label="Toggle menu"><span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span></button>
+ </div>
+ </header>
+ <div class="nav-overlay">
+ <a href="../../pages/services.html" class="nav-link">Services</a>
+ <a href="../../pages/support.html" class="nav-link">Support</a>
+ <a href="../../pages/approach.html" class="nav-link">Approach</a>
+ <a href="../../blogi/index.html" class="nav-link">Blog</a>
+ <a href="../../pages/about.html" class="nav-link">About</a>
+ <a href="../../pages/contact.html" class="nav-contact">Contact</a>
+ </div>
+ <div class="header-spacer"></div>
+ <main id="main">
+ <section class="section">
+ <div class="container">
+ <div class="article">
+ <a href="../../blogi/index.html" class="article-back">&#8592; Back to blog</a>
+ <div class="article-header">
+ <span class="article-date">May 14, 2024</span>
+ <h1>How to set focus on fields using Javascript in Business Central</h1>
+ </div>
+ <div class="article-content">
+ <p>When users enter sales order lines with a barcode scanner or need to move rapidly through a fixed sequence of fields, the default tab order in Business Central is often not efficient enough. By embedding a JavaScript control add-in and wiring it to <code>OnAfterValidate</code> triggers on each field, you can build a precise sequential focus chain that keeps the cursor exactly where the user needs it — without them having to reach for the mouse or tab past irrelevant fields. The pattern is especially useful in warehouse and manufacturing entry scenarios where every extra keystroke slows throughput.</p>
+
+ <img src="../../assets/images/wp/2022/05/fieldfocus-1024x537.gif" alt="Field focus sequential navigation in Business Central Sales Order Subform">
+
+ <p>The full source is available on GitHub: <a href="https://github.com/nocubicles/FieldFocus" target="_blank" rel="noopener">nocubicles/FieldFocus</a>.</p>
+
+ <h2>AL code</h2>
+ <p>The page extension adds a hidden <code>usercontrol</code> that hosts the JavaScript add-in. Each <code>OnAfterValidate</code> trigger on the target field calls a JavaScript function on the control to move focus to the next field in the sequence: No. moves to Quantity, Quantity to Unit Price, Unit Price to Qty. to Ship, and Qty. to Ship to Planned Delivery Date.</p>
+
+<pre><code>pageextension 50100"Sales Order Subform Focus" extends"Sales Order Subform"
+{
+ layout
+ {
+ addfirst(content)
+ {
+ usercontrol(FieldFocusControl;"Field Focus Addin")
+ {
+ ApplicationArea = All;
+ Visible = false;
+ }
+ }
+ }
+
+ trigger OnAfterGetCurrRecord()
+ begin
+ CurrPage.FieldFocusControl.SetVisible(false);
+ end;
+
+ var
+ FocusFieldName: Text;
+
+ local procedure FocusField(FieldName: Text)
+ begin
+ FocusFieldName := FieldName;
+ CurrPage.FieldFocusControl.FocusField(FieldName);
+ end;
+
+ field("No.") // extends existing field
+ {
+ trigger OnAfterValidate()
+ begin
+ FocusField('Quantity');
+ end;
+ }
+
+ field(Quantity)
+ {
+ trigger OnAfterValidate()
+ begin
+ FocusField('Unit Price');
+ end;
+ }
+
+ field("Unit Price")
+ {
+ trigger OnAfterValidate()
+ begin
+ FocusField('Qty. to Ship');
+ end;
+ }
+
+ field("Qty. to Ship")
+ {
+ trigger OnAfterValidate()
+ begin
+ FocusField('Planned Delivery Date');
+ end;
+ }
+}</code></pre>
+
+ <h2>Update — 09/02/2022: mobile compatibility</h2>
+ <p>The original JavaScript implementation does not work correctly on mobile browsers because the Business Central web client renders fields differently on touch devices. An alternative approach that works on both desktop and mobile uses <code>getElementsByTagName</code> to find all anchor elements in the page, locates the one whose label matches the target field name, and then finds and focuses the nearest input element relative to it.</p>
+
+<pre><code>// Mobile-compatible focus function
+function focusFieldByName(fieldCaption) {
+ var anchors = document.getElementsByTagName('a');
+ for (var i = 0; i < anchors.length; i++) {
+ if (anchors[i].textContent.trim() === fieldCaption) {
+ var container = anchors[i].closest('[data-control-name]');
+ if (container) {
+ var input = container.querySelector('input, textarea');
+ if (input) {
+ input.focus();
+ input.select();
+ return;
+ }
+ }
+ }
+ }
+}</code></pre>
+
+ <p>This approach is more resilient to changes in the BC rendering pipeline and works across the web client, the Windows client, and mobile browsers. The trade-off is that it relies on the field caption text being stable and unique within the page, so ensure your caption strings match exactly what is rendered in the UI.</p>
+ </div>
+ </div>
+ </div>
+ </section>
+ </main>
+ <footer class="footer">
+ <div class="container">
+ <div class="footer-grid">
+ <div><span class="footer-logo">integrated.ee</span><p class="footer-tagline">Senior Business Central team. AI-powered delivery. Estonian-based.</p></div>
+ <div><h4 class="footer-heading">Navigate</h4><nav class="footer-links"><a href="../../pages/services.html" class="footer-link">Services</a><a href="../../pages/support.html" class="footer-link">Support</a><a href="../../pages/approach.html" class="footer-link">Approach</a><a href="../../blogi/index.html" class="footer-link">Blog</a><a href="../../pages/about.html" class="footer-link">About</a><a href="../../pages/cases.html" class="footer-link">Cases</a></nav></div>
+ <div><h4 class="footer-heading">Contact</h4><div class="footer-contact-item"><a href="mailto:villem@integrated.ee">villem@integrated.ee</a></div><div class="footer-contact-item">Tallinn, Estonia</div></div>
+ </div>
+ <div class="footer-bottom"><p>&copy; 2026 integrated.ee OÜ. All rights reserved.</p></div>
+ </div>
+ </footer>
+ <script>
+ (function() {
+ var hamburger = document.querySelector('.hamburger');
+ var overlay = document.querySelector('.nav-overlay');
+ if (hamburger && overlay) {
+ hamburger.addEventListener('click', function() { hamburger.classList.toggle('hamburger--active'); overlay.classList.toggle('nav-overlay--active'); document.body.style.overflow = overlay.classList.contains('nav-overlay--active') ? 'hidden' : ''; });
+ overlay.querySelectorAll('a').forEach(function(link) { link.addEventListener('click', function() { hamburger.classList.remove('hamburger--active'); overlay.classList.remove('nav-overlay--active'); document.body.style.overflow = ''; }); });
+ }
+ var header = document.querySelector('.header');
+ if (header) { window.addEventListener('scroll', function() { header.classList.toggle('header-scrolled', window.scrollY > 10); }); }
+ })();
+ </script>
+</body>
+</html>

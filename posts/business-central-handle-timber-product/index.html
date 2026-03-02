@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <title>Handling timber products in Business Central — integrated.ee</title>
+  <meta name="description" content="Handling timber is in ERP is suprisingly hard in ERP. The thing it makes it difficult is that its handled both in Cubic Meters (M3), running meters and in...">
+  <link rel="canonical" href="https://integrated.ee/posts/business-central-handle-timber-product/">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Handling timber products in Business Central — integrated.ee">
+  <meta property="og:description" content="Handling timber is in ERP is suprisingly hard in ERP. The thing it makes it difficult is that its handled both in Cubic Meters (M3), running meters and in...">
+  <meta property="og:url" content="https://integrated.ee/posts/business-central-handle-timber-product/">
+  <meta property="og:image" content="https://integrated.ee/assets/logo.png">
+  <meta property="og:site_name" content="integrated.ee">
+  <meta property="article:published_time" content="2024-05-14">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Handling timber products in Business Central — integrated.ee">
+  <meta name="twitter:description" content="Handling timber is in ERP is suprisingly hard in ERP. The thing it makes it difficult is that its handled both in Cubic Meters (M3), running meters and in...">
+  <meta name="twitter:image" content="https://integrated.ee/assets/logo.png">
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+ <link rel="icon" type="image/png" href="../../assets/favicon-32.png">
+ <link rel="icon" type="image/png" href="../../assets/favicon-16.png">
+ <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png">
+
+ <link rel="stylesheet" href="../../css/style.css">
+
+ <script type="application/ld+json">
+ {
+"@context":"https://schema.org",
+"@type":"BlogPosting",
+"headline":"Handling timber products in Business Central",
+"datePublished":"2024-05-14",
+"description":"Handling timber products in Business Central",
+"url":"https://integrated.ee/posts/business-central-handle-timber-product/",
+"author": {
+"@type":"Organization",
+"name":"integrated.ee",
+"url":"https://integrated.ee"
+ },
+"publisher": {
+"@type":"Organization",
+"name":"integrated.ee",
+"url":"https://integrated.ee",
+"logo": {
+"@type":"ImageObject",
+"url":"https://integrated.ee/assets/logo.png"
+ }
+ }
+}
+ </script>
+</head>
+<body>
+ <a href="#main" class="skip-link">Skip to content</a>
+ <header class="header">
+ <div class="container">
+ <a href="../../index.html" class="logo"><img src="../../assets/logo.png" alt="integrated.ee" class="logo-icon">integrated.ee</a>
+ <nav class="nav">
+ <a href="../../pages/services.html" class="nav-link">Services</a>
+ <a href="../../pages/support.html" class="nav-link">Support</a>
+ <a href="../../pages/approach.html" class="nav-link">Approach</a>
+ <a href="../../blogi/index.html" class="nav-link nav-link--active">Blog</a>
+ <a href="../../pages/about.html" class="nav-link">About</a>
+ <a href="../../pages/contact.html" class="nav-contact">Contact</a>
+ </nav>
+ <button class="hamburger" aria-label="Toggle menu"><span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span></button>
+ </div>
+ </header>
+ <div class="nav-overlay">
+ <a href="../../pages/services.html" class="nav-link">Services</a>
+ <a href="../../pages/support.html" class="nav-link">Support</a>
+ <a href="../../pages/approach.html" class="nav-link">Approach</a>
+ <a href="../../blogi/index.html" class="nav-link">Blog</a>
+ <a href="../../pages/about.html" class="nav-link">About</a>
+ <a href="../../pages/contact.html" class="nav-contact">Contact</a>
+ </div>
+ <div class="header-spacer"></div>
+ <main id="main">
+ <section class="section">
+ <div class="container">
+ <div class="article">
+ <a href="../../blogi/index.html" class="article-back">&#8592; Back to blog</a>
+ <div class="article-header">
+ <span class="article-date">May 14, 2024</span>
+ <h1>Handling timber products in Business Central</h1>
+ </div>
+ <div class="article-content">
+<hr class="has-alpha-channel-opacity"/>
+
+<h1>Timber material in ERP</h1>
+
+<p>Handling timber is in ERP is suprisingly hard in ERP. The thing it makes it difficult is that its handled both in Cubic Meters (M3), running meters and in PC&#8217;s.</p>
+
+<p>Take a batch of timber with measurements (MM) 50x150x4500. Each piece of timber is about 0.03375 M3. ((50/1000)*(150/1000)/(4500/1000)) = 0.03375 M3.</p>
+
+<figure><img loading="lazy" decoding="async" width="786" height="533" src="../../assets/images/wp/2024/05/timber-batches.png" alt="" /></figure>
+
+<p>Each batch of timber has different qualities – It has % of moist, FSC/PEFC quality marking, stress test and many more.</p>
+
+<p>But the most important two are timber cross section and length.</p>
+
+<p>Timber is usually sold in steps of 300mm length – 3000,3300,3700…6600 or even longer. Normally it stops at 6000 though.</p>
+
+<p>So where to put these parameters and the length?</p>
+
+<h2>Lets put it to items.</h2>
+
+<p>If we put the length and parameters to item then we will quickly end up 100's of thousands of items in ERP and it never stops because each time new quality parameter is introduced we need new item.</p>
+
+<p>It will be a mess since selling wood is not so straight forward.</p>
+
+<p>Customer might order 120 PC's of 50x150x4500 = 4.05 M3 of wood from us but they are also willing to accept 50x150x4800 if we have that in stock, no problems.</p>
+
+<p>If the length is in the item code then MRP will always trigger new purchase orders for each length and we need to swap the items on orders all the time.</p>
+
+<p>Then there's also purchase planning – we cannot say exactly what lengths we want to purchase from saw mill since wood is natural product and lengths depend what is available.</p>
+
+<p>Instead we want to take together all our demand in cubic meters and say to the saw mill that we need 200 M3 of 50x150 raw material and we will accept lengts between 4000-6000.</p>
+
+<h2>Lets put cross section to items and length / parameters to lot (batch)</h2>
+
+<p>If we only leave cross section and maybe one or two quality parameter to item and put length and other quality parameters to batch we will get much more flex system.</p>
+
+<p>Then we are able to create sales order for 50x150 for Quantity of 120 PC's.</p>
+
+<p>We still need some customization to say which lengths the customer wants. We can do that by customizing Business Central.</p>
+
+<figure><img loading="lazy" decoding="async" width="1024" height="238" src="../../assets/images/wp/2024/05/sales-order-length-1024x238.gif" alt="" /></figure>
+
+<p>Here what we have done is created a way to choose length on the sales order which then triggers calculation that calculates the M3 of the order.</p>
+
+<p>Item card is defined as following with width and length of the timber:</p>
+
+<figure><img loading="lazy" decoding="async" width="1024" height="272" src="../../assets/images/wp/2024/05/item-card-1024x272.png" alt="" /></figure>
+
+<p>This will give us much flexibility since we will only have few number of item records.</p>
+
+<p>We can now select batches from inventory which we will ship with this sales order. We can combine different batches with different lenghts. We can take 30 pc's of 50x150x4500 and take 90 pc's of 50x150x4800 and customer will be happy.</p>
+
+<figure><img loading="lazy" decoding="async" width="1024" height="465" src="../../assets/images/wp/2024/05/choosing-lots-1024x465.gif" alt="" /></figure>
+
+<p>From Lot No Information page we can see the M3 and PC's of each individual lots:</p>
+
+<figure><img loading="lazy" decoding="async" width="1024" height="926" src="../../assets/images/wp/2024/05/lot-no-info-1024x926.png" alt="" /></figure>
+
+<p>Handling timber this way will give us much more flexibility</p>
+ </div>
+ </div>
+ </div>
+ </section>
+ </main>
+ <footer class="footer">
+ <div class="container">
+ <div class="footer-grid">
+ <div><span class="footer-logo">integrated.ee</span><p class="footer-tagline">Senior Business Central team. AI-powered delivery. Estonian-based.</p></div>
+ <div><h4 class="footer-heading">Navigate</h4><nav class="footer-links"><a href="../../pages/services.html" class="footer-link">Services</a><a href="../../pages/support.html" class="footer-link">Support</a><a href="../../pages/approach.html" class="footer-link">Approach</a><a href="../../blogi/index.html" class="footer-link">Blog</a><a href="../../pages/about.html" class="footer-link">About</a><a href="../../pages/cases.html" class="footer-link">Cases</a></nav></div>
+ <div><h4 class="footer-heading">Contact</h4><div class="footer-contact-item"><a href="mailto:villem@integrated.ee">villem@integrated.ee</a></div><div class="footer-contact-item">Tallinn, Estonia</div></div>
+ </div>
+ <div class="footer-bottom"><p>&copy; 2026 integrated.ee OÜ. All rights reserved.</p></div>
+ </div>
+ </footer>
+ <script>
+ (function() {
+ var hamburger = document.querySelector('.hamburger');
+ var overlay = document.querySelector('.nav-overlay');
+ if (hamburger && overlay) {
+ hamburger.addEventListener('click', function() { hamburger.classList.toggle('hamburger--active'); overlay.classList.toggle('nav-overlay--active'); document.body.style.overflow = overlay.classList.contains('nav-overlay--active') ? 'hidden' : ''; });
+ overlay.querySelectorAll('a').forEach(function(link) { link.addEventListener('click', function() { hamburger.classList.remove('hamburger--active'); overlay.classList.remove('nav-overlay--active'); document.body.style.overflow = ''; }); });
+ }
+ var header = document.querySelector('.header');
+ if (header) { window.addEventListener('scroll', function() { header.classList.toggle('header-scrolled', window.scrollY > 10); }); }
+ })();
+ </script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <title>Business Central and Power Apps — integrated.ee</title>
+  <meta name="description" content="I got interested in Power Apps, set some goals and managed to build a simple app to Receive Purchase Orders:">
+  <link rel="canonical" href="https://integrated.ee/posts/business-central-power-apps/">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Business Central and Power Apps — integrated.ee">
+  <meta property="og:description" content="I got interested in Power Apps, set some goals and managed to build a simple app to Receive Purchase Orders:">
+  <meta property="og:url" content="https://integrated.ee/posts/business-central-power-apps/">
+  <meta property="og:image" content="https://integrated.ee/assets/logo.png">
+  <meta property="og:site_name" content="integrated.ee">
+  <meta property="article:published_time" content="2024-05-14">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Business Central and Power Apps — integrated.ee">
+  <meta name="twitter:description" content="I got interested in Power Apps, set some goals and managed to build a simple app to Receive Purchase Orders:">
+  <meta name="twitter:image" content="https://integrated.ee/assets/logo.png">
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+ <link rel="icon" type="image/png" href="../../assets/favicon-32.png">
+ <link rel="icon" type="image/png" href="../../assets/favicon-16.png">
+ <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png">
+
+ <link rel="stylesheet" href="../../css/style.css">
+
+ <script type="application/ld+json">
+ {
+"@context":"https://schema.org",
+"@type":"BlogPosting",
+"headline":"Business Central and Power Apps",
+"datePublished":"2024-05-14",
+"description":"Business Central and Power Apps",
+"url":"https://integrated.ee/posts/business-central-power-apps/",
+"author": {
+"@type":"Organization",
+"name":"integrated.ee",
+"url":"https://integrated.ee"
+ },
+"publisher": {
+"@type":"Organization",
+"name":"integrated.ee",
+"url":"https://integrated.ee",
+"logo": {
+"@type":"ImageObject",
+"url":"https://integrated.ee/assets/logo.png"
+ }
+ }
+}
+ </script>
+</head>
+<body>
+ <a href="#main" class="skip-link">Skip to content</a>
+ <header class="header">
+ <div class="container">
+ <a href="../../index.html" class="logo"><img src="../../assets/logo.png" alt="integrated.ee" class="logo-icon">integrated.ee</a>
+ <nav class="nav">
+ <a href="../../pages/services.html" class="nav-link">Services</a>
+ <a href="../../pages/support.html" class="nav-link">Support</a>
+ <a href="../../pages/approach.html" class="nav-link">Approach</a>
+ <a href="../../blogi/index.html" class="nav-link nav-link--active">Blog</a>
+ <a href="../../pages/about.html" class="nav-link">About</a>
+ <a href="../../pages/contact.html" class="nav-contact">Contact</a>
+ </nav>
+ <button class="hamburger" aria-label="Toggle menu"><span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span></button>
+ </div>
+ </header>
+ <div class="nav-overlay">
+ <a href="../../pages/services.html" class="nav-link">Services</a>
+ <a href="../../pages/support.html" class="nav-link">Support</a>
+ <a href="../../pages/approach.html" class="nav-link">Approach</a>
+ <a href="../../blogi/index.html" class="nav-link">Blog</a>
+ <a href="../../pages/about.html" class="nav-link">About</a>
+ <a href="../../pages/contact.html" class="nav-contact">Contact</a>
+ </div>
+ <div class="header-spacer"></div>
+ <main id="main">
+ <section class="section">
+ <div class="container">
+ <div class="article">
+ <a href="../../blogi/index.html" class="article-back">&#8592; Back to blog</a>
+ <div class="article-header">
+ <span class="article-date">May 14, 2024</span>
+ <h1>Business Central and Power Apps</h1>
+ </div>
+ <div class="article-content">
+<hr class="has-alpha-channel-opacity"/>
+
+<h3>TL/DR:</h3>
+
+<p>I got interested in Power Apps, set some goals and managed to build a simple app to Receive Purchase Orders:</p>
+
+<figure><img loading="lazy" decoding="async" width="509" height="904" src="../../assets/images/wp/2024/05/Power_Apps_App.gif" alt=""/></figure>
+
+<h3>Why Power Apps</h3>
+
+<p>I've been against Low Code/No Code for as long as I can remember. I've always thought that these tools don't scale, make spaghetti code, restrict me too much and just that I don't need them. I can code everything from scratch and then be ready with my architecture when my application becomes next Twitter or Tiktok. But reality is that I work with LOB's (Line of Business) applications and usually there are only few users and for mobile apps theres only one particular use case per mobile app.</p>
+
+<p>Last week I visited Cloud Tech Tallinn #CTTT23 event and listened to couple of Power Apps workshops and wanted to try if that software really works for my use cases. My use cases for mobile/web apps are always something that connects to Business Central and enchants Business Central in some way.</p>
+
+<h3>The goal</h3>
+
+<p>I set a goal to build a Mobile App in Power Apps where I can:</p>
+
+<ul>
+<li>Log in</li>
+<li>See Open Purchase Orders list</li>
+<li>Navigate to Purchase Orders Lines</li>
+<li>Set Received Quantity on Purchase Orders Line</li>
+<li>Press a button and Purchase Order is Received and Invoiced</li>
+</ul>
+
+<h3>How it works</h3>
+
+<p>I used the standard <a href="https://learn.microsoft.com/en-us/connectors/dynamicssmbsaas/">BC Saas Connector</a> and I used Business Central Saas Sandbox for the backend.</p>
+
+<p>So this means all my data and interaction with Business Central is via HTTP requests.</p>
+
+<h3>How to navigate from Purchase Orders -&gt; Purchase Order Lines?</h3>
+
+<p>I set global variable in the <code>OnSelect</code> event for the Purchase Orders: <code>Set(SelectedPurchaseorderNo,BrowseGallery1.Selected.id);</code> and then I can use that to filter Purchase Order Lines: <code>Filter('purchaseOrderLines (v2.0)',documentId = SelectedPurchaseorderNo)</code></p>
+
+<h3>How to update quantities on the lines?</h3>
+
+<p>I made an input to update the"Received Quantities" on the Purchase Order Lines and use event <code>OnChange</code> with Patch method like this:</p>
+
+<pre class="has-background"><code>Patch('purchaseOrderLines (v2.0)',
+ LookUp('purchaseOrderLines (v2.0)',
+ id = ThisItem.id),
+ {
+ receiveQuantity:Value(TextInput1.Text)
+ }
+)</code></pre>
+
+<p>This will update Purchase Order Line with the Quantity I entered on the app.</p>
+
+<h3>How to Receive and Invoice via button press?</h3>
+
+<p>To Receive and Invoice a Purchase Order in Business Central I need to call Odata V4 Bound Action on the entity. To do this I used Power Automate:</p>
+
+<figure><img loading="lazy" decoding="async" width="1024" height="659" src="../../assets/images/wp/2024/05/PowerAppsButton-1024x659.png" alt="" /></figure>
+
+<p>And now I can attach that to the button <code>OnSelect</code> event like this: <code>PowerAppsButton.Run(SelectedPurchaseorderNo)</code>. Here the <code>SelectedPurchaseOrderNo</code> is the global variable that I can pass to the Power Automate.</p>
+
+<h3>What do I think after the experiment?</h3>
+
+<p>I think Power Apps are good enough to build real Apps for customers. I think there's enough flexibility and after the first learning curve it is productive tool to build these LOB apps.</p>
+
+<p>In this experiment I didn't use Git but I know its now possible to use Git also for versioning. Without Git support I would never have tried the product.</p>
+
+<p>It is marketed as Low Code/No Code but I found that I was writing some code from the start and I had to use my"developer hat" quite a lot.</p>
+
+<p>There are questions I will test and try to answer some time in the future:</p>
+
+<ul>
+<li>Can I use Service to Service connection instead of the user based connection for the connector?</li>
+<li>How good is the Barcode scanner?</li>
+<li>Can I take pictures and attach to record in Business Central? (I think I can)</li>
+<li>How to manage different companies/environments in Business Central and Power Apps?</li>
+<li>Can I speed up the UX somehow and not wait on every API call to finish, i.e do my interactions and get errors later maybe if not success?</li>
+<li>… and many more questions to come.</li>
+</ul>
+ </div>
+ </div>
+ </div>
+ </section>
+ </main>
+ <footer class="footer">
+ <div class="container">
+ <div class="footer-grid">
+ <div><span class="footer-logo">integrated.ee</span><p class="footer-tagline">Senior Business Central team. AI-powered delivery. Estonian-based.</p></div>
+ <div><h4 class="footer-heading">Navigate</h4><nav class="footer-links"><a href="../../pages/services.html" class="footer-link">Services</a><a href="../../pages/support.html" class="footer-link">Support</a><a href="../../pages/approach.html" class="footer-link">Approach</a><a href="../../blogi/index.html" class="footer-link">Blog</a><a href="../../pages/about.html" class="footer-link">About</a><a href="../../pages/cases.html" class="footer-link">Cases</a></nav></div>
+ <div><h4 class="footer-heading">Contact</h4><div class="footer-contact-item"><a href="mailto:villem@integrated.ee">villem@integrated.ee</a></div><div class="footer-contact-item">Tallinn, Estonia</div></div>
+ </div>
+ <div class="footer-bottom"><p>&copy; 2026 integrated.ee OÜ. All rights reserved.</p></div>
+ </div>
+ </footer>
+ <script>
+ (function() {
+ var hamburger = document.querySelector('.hamburger');
+ var overlay = document.querySelector('.nav-overlay');
+ if (hamburger && overlay) {
+ hamburger.addEventListener('click', function() { hamburger.classList.toggle('hamburger--active'); overlay.classList.toggle('nav-overlay--active'); document.body.style.overflow = overlay.classList.contains('nav-overlay--active') ? 'hidden' : ''; });
+ overlay.querySelectorAll('a').forEach(function(link) { link.addEventListener('click', function() { hamburger.classList.remove('hamburger--active'); overlay.classList.remove('nav-overlay--active'); document.body.style.overflow = ''; }); });
+ }
+ var header = document.querySelector('.header');
+ if (header) { window.addEventListener('scroll', function() { header.classList.toggle('header-scrolled', window.scrollY > 10); }); }
+ })();
+ </script>
+</body>
+</html>
